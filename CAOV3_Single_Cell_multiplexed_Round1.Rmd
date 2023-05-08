@@ -11,11 +11,12 @@ library(dplyr)
 library(Seurat)
 library(patchwork)
 ```
+
 ```{r}
-matrix_dir = "~/Downloads/p0/"
-barcode.path <- paste0(matrix_dir, "barcodes.tsv")
-features.path <- paste0(matrix_dir, "features.tsv")
-matrix.path <- paste0(matrix_dir, "matrix.mtx")
+matrix_dir = "C:/Users/empage/Documents/per_sample_outs/p0/count/sample_feature_bc_matrix/"
+barcode.path <- paste0(matrix_dir, "barcodes.tsv.gz")
+features.path <- paste0(matrix_dir, "features.tsv.gz")
+matrix.path <- paste0(matrix_dir, "matrix.mtx.gz")
 mat <- Matrix::readMM(file = matrix.path)
 feature.names = read.delim(features.path,
                            header = FALSE,
@@ -117,11 +118,11 @@ pbmc.markers %>%
     group_by(cluster) %>%
     slice_max(n = 2, order_by = avg_log2FC)
 
-write.csv(pbmc.markers, "~/Desktop/P0_genes_subgroups_edited.csv")
+write.csv(pbmc.markers, "C:/Users/empage/Documents/P0_genes_subgroups_edited.csv")
 ```
 #P1 
 ```{r}
-matrix_dir = "~/Downloads/p1/count/sample_feature_bc_matrix/"
+matrix_dir = "C:/Users/empage/Documents/per_sample_outs/p1/count/sample_feature_bc_matrix/"
 barcode.path <- paste0(matrix_dir, "barcodes.tsv.gz")
 features.path <- paste0(matrix_dir, "features.tsv.gz")
 matrix.path <- paste0(matrix_dir, "matrix.mtx.gz")
@@ -204,7 +205,7 @@ DimHeatmap(pbmc_1, dims = 1, cells = 500, balanced = TRUE)
 ```
 
 ```{r}
-pbmc_1 <- FindNeighbors(pbmc_1, dims = 1:10)
+pbmc_1 <- FindNeighbors(pbmc_1, dims = 1:20)
 pbmc_1 <- FindClusters(pbmc_1, resolution = 0.25)
 ```
 
@@ -218,11 +219,11 @@ pbmc.markers <- FindAllMarkers(pbmc_1, only.pos = TRUE, min.pct = 0.25, logfc.th
 pbmc.markers %>%
     group_by(cluster) %>%
     slice_max(n = 2, order_by = avg_log2FC)
-write.csv(pbmc.markers, "~/Desktop/P1_genes_subgroups.csv")
+write.csv(pbmc.markers, "C:/Users/empage/Documents/P1_genes_subgroups.csv")
 ```
 #P6
 ```{r}
-matrix_dir = "~/Downloads/p6/count/sample_feature_bc_matrix/"
+matrix_dir = "C:/Users/empage/Documents/per_sample_outs/p6/count/sample_feature_bc_matrix/"
 barcode.path <- paste0(matrix_dir, "barcodes.tsv.gz")
 features.path <- paste0(matrix_dir, "features.tsv.gz")
 matrix.path <- paste0(matrix_dir, "matrix.mtx.gz")
@@ -243,7 +244,7 @@ pbmc
 ```
 ```{r}
 #add meta separately 
-x2 <- rep("P7", each= 1794)
+x2 <- rep("P6", each= 1794)
 pbmc_3 <- AddMetaData(object= pbmc, metadata = x2, col.name= "time")
 ```
 
@@ -307,7 +308,7 @@ DimHeatmap(pbmc_3, dims = 1, cells = 500, balanced = TRUE)
 
 #also edited to higher dims (from 3 to 13) and chnage in resolution (from 0.5 to 0.25)
 ```{r}
-pbmc_3 <- FindNeighbors(pbmc_3, dims = 1:10)
+pbmc_3 <- FindNeighbors(pbmc_3, dims = 1:20)
 pbmc_3 <- FindClusters(pbmc_3, resolution = 0.25)
 ```
 
@@ -321,12 +322,12 @@ pbmc.markers <- FindAllMarkers(pbmc_3, only.pos = TRUE, min.pct = 0.25, logfc.th
 pbmc.markers %>%
     group_by(cluster) %>%
     slice_max(n = 2, order_by = avg_log2FC)
-write.csv(pbmc.markers, "~/Desktop/P6_genes_subgroups.csv")
+write.csv(pbmc.markers, "C:/Users/empage/Documents/P6_genes_subgroups.csv")
 ```
 
 #P7
 ```{r}
-matrix_dir = "~/Downloads/p7/count/sample_feature_bc_matrix/"
+matrix_dir <- "C:/Users/empage/Documents/per_sample_outs/p7/count/sample_feature_bc_matrix/"
 barcode.path <- paste0(matrix_dir, "barcodes.tsv.gz")
 features.path <- paste0(matrix_dir, "features.tsv.gz")
 matrix.path <- paste0(matrix_dir, "matrix.mtx.gz")
@@ -412,7 +413,7 @@ DimHeatmap(pbmc_4, dims = 1, cells = 500, balanced = TRUE)
 
 #also edited to higher dims (from 3 to 13) and chnage in resolution (from 0.5 to 0.25)
 ```{r}
-pbmc_4 <- FindNeighbors(pbmc_4, dims = 1:10)
+pbmc_4 <- FindNeighbors(pbmc_4, dims = 1:20)
 pbmc_4 <- FindClusters(pbmc_4, resolution = 0.25)
 ```
 
@@ -426,12 +427,12 @@ pbmc.markers <- FindAllMarkers(pbmc_4, only.pos = TRUE, min.pct = 0.25, logfc.th
 pbmc.markers %>%
     group_by(cluster) %>%
     slice_max(n = 2, order_by = avg_log2FC)
-write.csv(pbmc.markers, "~/Desktop/P7_genes_subgroups.csv")
+write.csv(pbmc.markers, "C:/Users/empage/Documents/P7_genes_subgroups.csv")
 ```
 
 #Merging 
 ```{r}
-pbmc.combined <- merge(pbmc, y = pbmc_1, add.cell.ids = c("P0", "P7"), project = "P0_P7")
+pbmc.combined <- merge(pbmc, y = c(pbmc_1, pbmc_3, pbmc_4), add.cell.ids = c("P0","P1","P6","P7"), project = "CAOV3_multiplexed")
 pbmc.combined
 ```
 
@@ -506,7 +507,7 @@ DimPlot(pbmc.combined, reduction = "umap")
 ```
 
 ```{r}
-pbmc.combined <- RunUMAP(pbmc.combined, dims = 1:7)
+pbmc.combined <- RunUMAP(pbmc.combined, dims = 1:5)
 DimPlot(pbmc.combined, reduction = "umap")
 ```
 
@@ -540,5 +541,5 @@ pbmc.markers <- FindAllMarkers(pbmc.combined, only.pos = TRUE, min.pct = 0.25, l
 pbmc.markers %>%
     group_by(cluster) %>%
     slice_max(n = 2, order_by = avg_log2FC)
-write.csv(pbmc.markers, "~/Desktop/P0_P7_genes_subgroups.csv")
+write.csv(pbmc.markers, "C:/Users/empage/Documents/CAOV3_genes_subgroups.csv")
 ```
