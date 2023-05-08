@@ -119,22 +119,31 @@ pbmc.markers %>%
 
 write.csv(pbmc.markers, "~/Desktop/P0_genes_subgroups_edited.csv")
 ```
-
-
-
-#P7
+#P1 
 ```{r}
-# Load the PBMC dataset
-pbmc.data_1 <- Read10X(data.dir = "~/Documents/Mythreye_Lab/Mehri_Resha/Single_cell_mehri/run_count_P7")
-# Initialize the Seurat object with the raw (non-normalized data).
-pbmc_1 <- CreateSeuratObject(counts = pbmc.data_1, min.cells = 1, min.features = 200)
-pbmc_1
+matrix_dir = "~/Downloads/p1/count/sample_feature_bc_matrix/"
+barcode.path <- paste0(matrix_dir, "barcodes.tsv.gz")
+features.path <- paste0(matrix_dir, "features.tsv.gz")
+matrix.path <- paste0(matrix_dir, "matrix.mtx.gz")
+mat <- Matrix::readMM(file = matrix.path)
+feature.names = read.delim(features.path,
+                           header = FALSE,
+                           stringsAsFactors = FALSE)
+barcode.names = read.delim(barcode.path,
+                           header = FALSE,
+                           stringsAsFactors = FALSE)
+colnames(mat) = barcode.names$V1
+rownames(mat) = feature.names$V1
 ```
 
 ```{r}
+pbmc <- CreateSeuratObject(counts = mat, min.cells = 1, min.features = 200)
+pbmc
+```
+```{r}
 #add meta separately 
-x2 <- rep("P7", each= 14029)
-pbmc_1 <- AddMetaData(object= pbmc_1, metadata = x2, col.name= "time")
+x2 <- rep("P1", each= 897)
+pbmc_1 <- AddMetaData(object= pbmc, metadata = x2, col.name= "time")
 ```
 
 ```{r}
@@ -165,7 +174,6 @@ plot1 <- VariableFeaturePlot(pbmc_1)
 plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
 plot1
 ```
-
 ```{r}
 plot2
 ```
@@ -195,15 +203,13 @@ DimPlot(pbmc_1, reduction = "pca", group.by= )
 DimHeatmap(pbmc_1, dims = 1, cells = 500, balanced = TRUE)
 ```
 
-
-#also edited to higher dims (from 3 to 13) and chnage in resolution (from 0.5 to 0.25)
 ```{r}
 pbmc_1 <- FindNeighbors(pbmc_1, dims = 1:10)
 pbmc_1 <- FindClusters(pbmc_1, resolution = 0.25)
 ```
 
 ```{r}
-pbmc_1 <- RunUMAP(pbmc_1, dims = 1:13)
+pbmc_1 <- RunUMAP(pbmc_1, dims = 1:5)
 DimPlot(pbmc_1, reduction = "umap")
 ```
 
@@ -212,9 +218,216 @@ pbmc.markers <- FindAllMarkers(pbmc_1, only.pos = TRUE, min.pct = 0.25, logfc.th
 pbmc.markers %>%
     group_by(cluster) %>%
     slice_max(n = 2, order_by = avg_log2FC)
-write.csv(pbmc.markers, "~/Desktop/P7_genes_subgroups.csv")
+write.csv(pbmc.markers, "~/Desktop/P1_genes_subgroups.csv")
+```
+#P6
+```{r}
+matrix_dir = "~/Downloads/p6/count/sample_feature_bc_matrix/"
+barcode.path <- paste0(matrix_dir, "barcodes.tsv.gz")
+features.path <- paste0(matrix_dir, "features.tsv.gz")
+matrix.path <- paste0(matrix_dir, "matrix.mtx.gz")
+mat <- Matrix::readMM(file = matrix.path)
+feature.names = read.delim(features.path,
+                           header = FALSE,
+                           stringsAsFactors = FALSE)
+barcode.names = read.delim(barcode.path,
+                           header = FALSE,
+                           stringsAsFactors = FALSE)
+colnames(mat) = barcode.names$V1
+rownames(mat) = feature.names$V1
 ```
 
+```{r}
+pbmc <- CreateSeuratObject(counts = mat, min.cells = 1, min.features = 200)
+pbmc
+```
+```{r}
+#add meta separately 
+x2 <- rep("P7", each= 1794)
+pbmc_3 <- AddMetaData(object= pbmc, metadata = x2, col.name= "time")
+```
+
+```{r}
+# Visualize QC metrics as a violin plot
+VlnPlot(pbmc_3, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, group.by= )
+```
+
+```{r}
+# FeatureScatter is typically used to visualize feature-feature relationships, but can be used
+# for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
+plot2 <- FeatureScatter(pbmc_3, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+plot2
+```
+
+```{r}
+pbmc_3 <- subset(pbmc_3, subset = nFeature_RNA > 200 & nFeature_RNA < 2500)
+pbmc_3 <- NormalizeData(pbmc_3, normalization.method = "LogNormalize", scale.factor = 10000)
+```
+
+```{r}
+pbmc_3 <- FindVariableFeatures(pbmc_3, selection.method = "mvp", nfeatures = 2000)
+
+# Identify the 10 most highly variable genes
+top10 <- head(VariableFeatures(pbmc_3), 10)
+
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(pbmc_3)
+plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
+plot1
+```
+
+```{r}
+plot2
+```
+
+```{r}
+all.genes <- rownames(pbmc_3)
+pbmc_3 <- ScaleData(pbmc_3, features = all.genes)
+```
+
+```{r}
+pbmc_3 <- RunPCA(pbmc_3, features = VariableFeatures(object = pbmc_3))
+```
+
+```{r}
+print(pbmc_3[["pca"]], dims = 1:5, nfeatures = 5)
+```
+
+```{r}
+VizDimLoadings(pbmc_3, dims = 1:2, reduction = "pca")
+```
+
+```{r}
+DimPlot(pbmc_3, reduction = "pca", group.by= )
+```
+
+```{r}
+DimHeatmap(pbmc_3, dims = 1, cells = 500, balanced = TRUE)
+```
+
+#also edited to higher dims (from 3 to 13) and chnage in resolution (from 0.5 to 0.25)
+```{r}
+pbmc_3 <- FindNeighbors(pbmc_3, dims = 1:10)
+pbmc_3 <- FindClusters(pbmc_3, resolution = 0.25)
+```
+
+```{r}
+pbmc_3 <- RunUMAP(pbmc_3, dims = 1:3)
+DimPlot(pbmc_3, reduction = "umap")
+```
+
+```{r}
+pbmc.markers <- FindAllMarkers(pbmc_3, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+pbmc.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 2, order_by = avg_log2FC)
+write.csv(pbmc.markers, "~/Desktop/P6_genes_subgroups.csv")
+```
+
+#P7
+```{r}
+matrix_dir = "~/Downloads/p7/count/sample_feature_bc_matrix/"
+barcode.path <- paste0(matrix_dir, "barcodes.tsv.gz")
+features.path <- paste0(matrix_dir, "features.tsv.gz")
+matrix.path <- paste0(matrix_dir, "matrix.mtx.gz")
+mat <- Matrix::readMM(file = matrix.path)
+feature.names = read.delim(features.path,
+                           header = FALSE,
+                           stringsAsFactors = FALSE)
+barcode.names = read.delim(barcode.path,
+                           header = FALSE,
+                           stringsAsFactors = FALSE)
+colnames(mat) = barcode.names$V1
+rownames(mat) = feature.names$V1
+```
+
+```{r}
+pbmc <- CreateSeuratObject(counts = mat, min.cells = 1, min.features = 200)
+pbmc
+```
+
+```{r}
+#add meta separately 
+x2 <- rep("P7", each= 1617)
+pbmc_4 <- AddMetaData(object= pbmc, metadata = x2, col.name= "time")
+```
+
+```{r}
+# Visualize QC metrics as a violin plot
+VlnPlot(pbmc_4, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, group.by= )
+```
+
+```{r}
+# FeatureScatter is typically used to visualize feature-feature relationships, but can be used
+# for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
+plot2 <- FeatureScatter(pbmc_4, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+plot2
+```
+
+```{r}
+pbmc_4 <- subset(pbmc_4, subset = nFeature_RNA > 200 & nFeature_RNA < 2500)
+pbmc_4 <- NormalizeData(pbmc_4, normalization.method = "LogNormalize", scale.factor = 10000)
+```
+
+```{r}
+pbmc_4 <- FindVariableFeatures(pbmc_4, selection.method = "mvp", nfeatures = 2000)
+
+# Identify the 10 most highly variable genes
+top10 <- head(VariableFeatures(pbmc_4), 10)
+
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(pbmc_4)
+plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
+plot1
+```
+
+```{r}
+plot2
+```
+
+```{r}
+all.genes <- rownames(pbmc_4)
+pbmc_4 <- ScaleData(pbmc_4, features = all.genes)
+```
+
+```{r}
+pbmc_4 <- RunPCA(pbmc_4, features = VariableFeatures(object = pbmc_4))
+```
+
+```{r}
+print(pbmc_4[["pca"]], dims = 1:5, nfeatures = 5)
+```
+
+```{r}
+VizDimLoadings(pbmc_4, dims = 1:2, reduction = "pca")
+```
+
+```{r}
+DimPlot(pbmc_4, reduction = "pca", group.by= )
+```
+
+```{r}
+DimHeatmap(pbmc_4, dims = 1, cells = 500, balanced = TRUE)
+```
+
+#also edited to higher dims (from 3 to 13) and chnage in resolution (from 0.5 to 0.25)
+```{r}
+pbmc_4 <- FindNeighbors(pbmc_4, dims = 1:10)
+pbmc_4 <- FindClusters(pbmc_4, resolution = 0.25)
+```
+
+```{r}
+pbmc_4 <- RunUMAP(pbmc_4, dims = 1:3)
+DimPlot(pbmc_4, reduction = "umap")
+```
+
+```{r}
+pbmc.markers <- FindAllMarkers(pbmc_4, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+pbmc.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 2, order_by = avg_log2FC)
+write.csv(pbmc.markers, "~/Desktop/P7_genes_subgroups.csv")
+```
 
 #Merging 
 ```{r}
