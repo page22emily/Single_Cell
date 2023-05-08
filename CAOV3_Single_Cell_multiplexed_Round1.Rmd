@@ -102,12 +102,12 @@ DimHeatmap(pbmc, dims = 1, cells = 500, balanced = TRUE)
 
 #editing this to reflect that higher dimensions and a lower resolution need to be used to reflect the data better
 ```{r}
-pbmc <- FindNeighbors(pbmc, dims = 1:40)
+pbmc <- FindNeighbors(pbmc, dims = 1:30)
 pbmc <- FindClusters(pbmc, resolution = 0.25)
 ```
 #13 dims seems to be where it starts to keep the same for higher dimensions, so this is what I chose 
 ```{r}
-pbmc <- RunUMAP(pbmc, dims = 1:35)
+pbmc <- RunUMAP(pbmc, dims = 1:25)
 DimPlot(pbmc, reduction = "umap")
 ```
 
