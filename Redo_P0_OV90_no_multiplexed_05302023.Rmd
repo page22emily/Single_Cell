@@ -1,9 +1,17 @@
 ---
-title: "Redo_OV90"
+title: "P0_06052023_redo"
 output: html_document
-date: "2023-03-20"
+date: "2023-06-05"
 ---
-Test push and pull
+
+this one was redone because the libraries were the same for 2 samples in the sequencing redone.
+P0 was resequenced and sent on 05/30/2023
+Cell Ranger was run and there were no warnings. Completed on Cheaha at 06/05/2023
+Read Depth 29,386 reads per cell 
+Number of Cells: 19,782
+Valid barcodes: 98.2%
+Valid UMIs: 100%
+
 ```{r}
 library(dplyr)
 library(Seurat)
@@ -12,7 +20,7 @@ library(patchwork)
 
 ```{r}
 # Load the PBMC dataset
-pbmc.data <- Read10X(data.dir =  "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/single_cell_3.20.2023/run_count_P7/")
+pbmc.data <- Read10X(data.dir =  "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/P0_not_multiplexed_redo_06052023/cell_ranger_output/")
 # Initialize the Seurat object with the raw (non-normalized data).
 pbmc <- CreateSeuratObject(counts = pbmc.data, min.cells = 1, min.features = 200)
 pbmc
@@ -20,7 +28,7 @@ pbmc
 
 ```{r}
 #add meta separately 
-x2 <- rep("P7", each= 15433)
+x2 <- rep("P0", each= 29582)
 pbmc <- AddMetaData(object= pbmc, metadata = x2, col.name= "time")
 ```
 
@@ -60,7 +68,7 @@ VizDimLoadings(pbmc, dims = 1:2, reduction = "pca")
 ```
 
 ```{r}
-DimHeatmap(pbmc, dims = 1, cells = 500, balanced = TRUE)
+DimHeatmap(pbmc, dims = 3, cells = 500, balanced = TRUE)
 ```
 
 #Round 1 of exploration: Change the dims within the RunUMAP function. 
@@ -69,26 +77,19 @@ DimHeatmap(pbmc, dims = 1, cells = 500, balanced = TRUE)
 pbmc <- FindNeighbors(pbmc, dims = 1:40)
 pbmc <- FindClusters(pbmc, resolution = 0.5)
 ```
-
 ```{r}
-pbmc <- RunUMAP(pbmc, dims = 1:3)
+pbmc <- RunUMAP(pbmc, dims = 1:13)
 DimPlot(pbmc, reduction = "umap")
 ```
-
-```{r}
-pbmc <- RunUMAP(pbmc, dims = 1:15)
-DimPlot(pbmc, reduction = "umap")
-```
-
 ```{r}
 pbmc <- RunUMAP(pbmc, dims = 1:20)
 DimPlot(pbmc, reduction = "umap")
 ```
-
 ```{r}
 pbmc <- RunUMAP(pbmc, dims = 1:35)
 DimPlot(pbmc, reduction = "umap")
 ```
+
 
 From here, I noticed that some of these subclusters just do not want to separate further. So I wanted a UMAP to incorporate that idea. The best way to do that is to reduce the resolution, which is what I did. My expectation is that it will reduce the subclusters and hold on to the most important features. 
 
@@ -98,8 +99,9 @@ pbmc2 <- FindNeighbors(pbmc, dims = 1:40)
 pbmc2 <- FindClusters(pbmc2, resolution = 0.25)
 ```
 
+
 ```{r}
-pbmc2 <- RunUMAP(pbmc2, dims = 1:3)
+pbmc2 <- RunUMAP(pbmc2, dims = 1:13)
 DimPlot(pbmc2, reduction = "umap")
 ```
 
@@ -112,11 +114,11 @@ DimPlot(pbmc2, reduction = "umap")
 pbmc2 <- RunUMAP(pbmc2, dims = 1:20)
 DimPlot(pbmc2, reduction = "umap")
 ```
+
 ```{r}
 pbmc2 <- RunUMAP(pbmc2, dims = 1:35)
 DimPlot(pbmc2, reduction = "umap")
 ```
-
 
 ```{r}
 pbmc.markers <- FindAllMarkers(pbmc2, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
@@ -124,16 +126,15 @@ pbmc.markers %>%
     group_by(cluster) %>%
     slice_max(n = 2, order_by = avg_log2FC)
 
-write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/single_cell_3.20.2023/P7_genes_subgroups_exploration.csv")
+write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/P0_not_multiplexed_redo_06052023/P0_genes_subgroups_exploration.csv")
 ```
 
-
+ 
 ```{r}
 pbmc.markers <- FindAllMarkers(pbmc, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 pbmc.markers %>%
     group_by(cluster) %>%
     slice_max(n = 2, order_by = avg_log2FC)
 
-write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/single_cell_3.20.2023/P7_genes_subgroups_exploration_original.csv")
+write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/P0_not_multiplexed_redo_06052023/P0_genes_subgroups_exploration_original.csv")
 ```
-
