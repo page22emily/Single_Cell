@@ -1,0 +1,256 @@
+---
+title: "merge_P0_an_P7_OV90"
+output: html_document
+date: "2023-06-29"
+---
+
+```{r}
+library(dplyr)
+library(Seurat)
+library(patchwork)
+```
+
+```{r}
+# Load the PBMC dataset
+pbmc.data <- Read10X(data.dir =  "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/P0_not_multiplexed_redo_06052023/cell_ranger_output/")
+# Initialize the Seurat object with the raw (non-normalized data).
+pbmc <- CreateSeuratObject(counts = pbmc.data, min.cells = 1, min.features = 200)
+pbmc
+```
+
+```{r}
+#add meta separately 
+x2 <- rep("P0", each= 29582)
+pbmc <- AddMetaData(object= pbmc, metadata = x2, col.name= "time")
+```
+
+```{r}
+pbmc <- subset(pbmc, subset = nFeature_RNA > 200 & nFeature_RNA < 2500)
+
+pbmc <- NormalizeData(pbmc, normalization.method = "LogNormalize", scale.factor = 10000)
+```
+
+```{r}
+# Load the PBMC dataset
+pbmc.data2 <- Read10X(data.dir =  "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/single_cell_3.20.2023/run_count_P7/")
+# Initialize the Seurat object with the raw (non-normalized data).
+pbmc2 <- CreateSeuratObject(counts = pbmc.data2, min.cells = 1, min.features = 200)
+pbmc2
+```
+
+```{r}
+#add meta separately 
+x2 <- rep("P7", each= 15433)
+pbmc2 <- AddMetaData(object= pbmc2, metadata = x2, col.name= "time")
+```
+
+```{r}
+pbmc2 <- subset(pbmc2, subset = nFeature_RNA > 200 & nFeature_RNA < 2500)
+
+pbmc2 <- NormalizeData(pbmc2, normalization.method = "LogNormalize", scale.factor = 10000)
+```
+
+```{r}
+pbmc.combined <- merge(pbmc, y = pbmc2, add.cell.ids = c("P0", "P7"), project = "P0_P7")
+pbmc.combined
+```
+
+```{r}
+# Visualize QC metrics as a violin plot
+VlnPlot(pbmc.combined, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, group.by= )
+```
+
+```{r}
+# FeatureScatter is typically used to visualize feature-feature relationships, but can be used
+# for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
+plot2 <- FeatureScatter(pbmc.combined, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+plot2
+```
+
+```{r}
+pbmc.combined <- subset(pbmc.combined , subset = nFeature_RNA > 200 & nFeature_RNA < 2500)
+
+pbmc.combined  <- NormalizeData(pbmc.combined , normalization.method = "LogNormalize", scale.factor = 10000)
+```
+
+```{r}
+pbmc.combined <- FindVariableFeatures(pbmc.combined, selection.method = "mvp", nfeatures = 2000)
+
+# Identify the 10 most highly variable genes
+top10 <- head(VariableFeatures(pbmc.combined), 10)
+
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(pbmc.combined)
+plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
+plot1
+```
+
+```{r}
+plot2
+```
+
+```{r}
+all.genes <- rownames(pbmc.combined)
+pbmc.combined <- ScaleData(pbmc.combined, features = all.genes)
+```
+
+```{r}
+pbmc.combined <- RunPCA(pbmc.combined, features = VariableFeatures(object = pbmc.combined))
+```
+
+```{r}
+print(pbmc.combined[["pca"]], dims = 1:5, nfeatures = 5)
+```
+
+```{r}
+VizDimLoadings(pbmc.combined, dims = 1:2, reduction = "pca")
+```
+
+```{r}
+DimPlot(pbmc.combined, reduction = "pca", group.by= )
+```
+
+```{r}
+DimHeatmap(pbmc.combined, dims = 1, cells = 500, balanced = TRUE)
+```
+
+```{r}
+pbmc.combined <- FindNeighbors(pbmc.combined, dims = 1:40)
+pbmc.combined <- FindClusters(pbmc.combined, resolution = 0.25)
+```
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:20)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:35)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:50)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc.markers <- FindAllMarkers(pbmc.combined, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+pbmc.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 2, order_by = avg_log2FC)
+write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/Single_Cell_OV90_not_multi_UMAP_res_explore_062023/P0_P7_genes_subgroups_OV90_res25_dims50.csv")
+```
+
+```{r}
+pbmc.combined <- FindNeighbors(pbmc.combined, dims = 1:40)
+pbmc.combined <- FindClusters(pbmc.combined, resolution = 0.37)
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:20)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:35)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:50)
+DimPlot(pbmc, reduction = "umap")
+```
+```{r}
+pbmc.markers <- FindAllMarkers(pbmc.combined, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+pbmc.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 2, order_by = avg_log2FC)
+write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/Single_Cell_OV90_not_multi_UMAP_res_explore_062023/P0_P7_genes_subgroups_OV90_res37_dims50.csv")
+```
+
+```{r}
+pbmc.combined <- FindNeighbors(pbmc.combined, dims = 1:40)
+pbmc.combined <- FindClusters(pbmc.combined, resolution = 0.50)
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:20)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:35)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:50)
+DimPlot(pbmc, reduction = "umap")
+```
+```{r}
+pbmc.markers <- FindAllMarkers(pbmc.combined, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+pbmc.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 2, order_by = avg_log2FC)
+write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/Single_Cell_OV90_not_multi_UMAP_res_explore_062023/P0_P7_genes_subgroups_OV90_res50_dims50.csv")
+```
+
+```{r}
+pbmc.combined <- FindNeighbors(pbmc.combined, dims = 1:40)
+pbmc.combined <- FindClusters(pbmc.combined, resolution = 0.75)
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:20)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:35)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:50)
+DimPlot(pbmc, reduction = "umap")
+```
+```{r}
+pbmc.markers <- FindAllMarkers(pbmc.combined, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+pbmc.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 2, order_by = avg_log2FC)
+write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/Single_Cell_OV90_not_multi_UMAP_res_explore_062023/P0_P7_genes_subgroups_OV90_res75_dims50.csv")
+```
+
+```{r}
+pbmc.combined <- FindNeighbors(pbmc.combined, dims = 1:40)
+pbmc.combined <- FindClusters(pbmc.combined, resolution = 0.87)
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:20)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:35)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc.combined, dims = 1:50)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc.markers <- FindAllMarkers(pbmc.combined, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+pbmc.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 2, order_by = avg_log2FC)
+write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/Single_Cell_OV90_not_multi_UMAP_res_explore_062023/P0_P7_genes_subgroups_OV90_res87_dims50.csv")
+```
+
+```{r}
+DimPlot(object = pbmc, reduction = "umap", group.by = "time")
+```
+
