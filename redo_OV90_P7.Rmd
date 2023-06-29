@@ -167,7 +167,7 @@ pbmc.markers %>%
 write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/Single_Cell_OV90_not_multi_UMAP_res_explore_062023/markers_res50_P7_dims35.csv")
 ```
 
-#Highest Group resolution 0.75
+# resolution 0.75
 ```{r}
 pbmc <- FindNeighbors(pbmc, dims = 1:40)
 pbmc <- FindClusters(pbmc, resolution = 0.75)
@@ -202,3 +202,37 @@ pbmc.markers %>%
 write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/Single_Cell_OV90_not_multi_UMAP_res_explore_062023/markers_res75_P7_dims35.csv")
 ```
 
+#Highest Group resolution 0.87
+```{r}
+pbmc <- FindNeighbors(pbmc, dims = 1:40)
+pbmc <- FindClusters(pbmc, resolution = 0.87)
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc, dims = 1:3)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc, dims = 1:15)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc, dims = 1:20)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc <- RunUMAP(pbmc, dims = 1:35)
+DimPlot(pbmc, reduction = "umap")
+```
+
+```{r}
+pbmc.markers <- FindAllMarkers(pbmc, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+pbmc.markers %>%
+    group_by(cluster) %>%
+    slice_max(n = 2, order_by = avg_log2FC)
+
+write.csv(pbmc.markers, "C:/Users/empage/Documents/Lab_Stuff/Anoikis/OV90/Single_Cell/Single_Cell_OV90_not_multi_UMAP_res_explore_062023/markers_res87_P7_dims35.csv")
+```
